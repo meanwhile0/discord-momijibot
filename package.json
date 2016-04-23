@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/NightmareX91/discord-momijibot#readme",
   "dependencies": {
-    "discord.js": "^7.0.1"
+    "discord.js": "^7.0.1",
+    "mkdirp": "^0.5.1"
   }
 }
