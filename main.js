@@ -115,12 +115,38 @@ var commands = {
                         console.log(configOptions[suffix2]);
 
                         if (configOptions[suffix2] !== undefined) {
+                            var value;
+
                             console.log(suffix2 + " is in configOptions!");
+
+                            if (!suffix3) {
+                                bot.reply(msg, "you need to set a value!");
+                                return;
+                            }
+                            else if (suffix3.toLowerCase() === "true" || suffix3.toLowerCase() === "false") {
+                                value = suffix3.toLowerCase();
+                            }
+                            else {
+                                value = connection.escape(suffix3.toLowerCase());
+                            }
+                            
+                            connection.query("UPDATE " + srvTable + " SET " + suffix2 + " = " + value + ";", function (err, results, fields) {
+                                if (err) {
+                                    console.log(err);
+                                    bot.sendMessage(msg.channel, "***ERROR:*** *`" + err.code + "`!\nPlease ensure your input is valid, or contact `@meanwhile#8540` for assistance!*");
+                                    return;
+                                }
+
+                                bot.sendMessage(msg.channel, "I have set `" + suffix2 + "` to `" + value + "`!");
+                            });
                         }
                         else {
                             console.log(suffix2 + " is not in configOptions or is undefined!");
                         }
                     });
+                }
+                else if (suffix2 === "update") {
+
                 }
             }
             else {
@@ -205,7 +231,7 @@ bot.on("serverCreated", function(srv) {
     var escSrvTable = connection.escape(srvTable);
     var escSrvID = connection.escape(srv.id);
 
-    connection.query("CREATE TABLE IF NOT EXISTS " + srvTable + " ( serverID VARCHAR(18), roleBans BOOL, configTest BOOL );", function(err, result) {
+    connection.query("CREATE TABLE IF NOT EXISTS " + srvTable + " ( serverID VARCHAR(18), roleBans BOOL, configTest BOOL, newOption DATETIME );", function(err, result) {
         if (err) {
             throw err;
         }
@@ -219,7 +245,7 @@ bot.on("serverCreated", function(srv) {
         var result = results[0][fields[0].name];
         
         if (result === 0) {
-            connection.query("INSERT INTO " + srvTable + " VALUES ( '" + srv.id + "', false, false );", function (err, result) {
+            connection.query("INSERT INTO " + srvTable + " VALUES ( '" + srv.id + "', false, false, now() );", function (err, result) {
                 if (err) {
                     throw err;
                 }
