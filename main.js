@@ -38,7 +38,15 @@ var commands = {
         process: function (bot, msg, suffix, suffix2, suffix3) {
             if (msg.channel.permissionsOf(msg.author).hasPermission("manageServer")) {
                 var srv = msg.channel.server.id;
+                var srvTable = "srv_" + srv;
                 
+                connection.query("SELECT * FROM " + srvTable, function (err, results, fields) {
+                    if (err) {
+                        throw err;
+                    }
+
+                    console.log(results);
+                });
             }
             else {
                 bot.reply(msg, "you don't have `manageServer` permissions!");
@@ -48,14 +56,22 @@ var commands = {
 };
 
 var bot = new discord.Client();
+var connection = mysql.createConnection({
+    host: authDetails.host,
+    user: authDetails.user,
+    password: authDetails.password,
+    database: authDetails.database
+});
 
 bot.on("ready", function () {
     console.log("Connected!");
     bot.setPlayingGame("Mountain of Faith");
+    connection.connect();
 });
 
 bot.on("disconnected", function () {
     console.log("Disconnected!");
+    connection.end();
     process.exit();
 });
 
@@ -107,6 +123,38 @@ bot.on("message", function (msg) {
 
         // bot.reply(msg, "command " + cmd + " and suffix " + suffix + " has been interpreted!");
     }
+});
+
+bot.on("serverCreated", function(srv) {
+    var srvTable = "srv_" + srv.id;
+    var escSrvTable = connection.escape(srvTable);
+    var escSrvID = connection.escape(srv.id);
+
+    connection.query("CREATE TABLE IF NOT EXISTS " + srvTable + " ( serverID VARCHAR(18), roleBans BOOL, configTest BOOL );", function(err, result) {
+        if (err) {
+            throw err;
+        }
+    });
+
+    connection.query("SELECT EXISTS ( SELECT 1 FROM " + srvTable + " WHERE serverID = " + escSrvID + " );", function (err, results, fields) {
+        if (err) {
+            throw err;
+        }
+
+        var result = results[0][fields[0].name];
+        
+        if (result === 0) {
+            connection.query("INSERT INTO " + srvTable + " VALUES ( '" + srv.id + "', 0, 0 );", function (err, result) {
+                if (err) {
+                    throw err;
+                }
+            });
+            console.log("Row doesn't exist, creating it!");
+        }
+        else {
+            console.log("Row exists, not creating it!");
+        }
+    });
 });
 
 bot.loginWithToken(authDetails.token, function (err) {
