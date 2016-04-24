@@ -17,6 +17,25 @@ catch (e) {
 
 var fs = require("fs");
 
+var sqlDataTypes = {
+    1: "tinyint",
+    2: "smallint",
+    3: "int",
+    4: "float",
+    5: "double",
+    7: "timestamp",
+    8: "bigint",
+    9: "mediumint",
+    10: "date",
+    11: "time",
+    12: "datetime",
+    13: "year",
+    16: "bit",
+    253: "varchar",
+    254: "char",
+    246: "decimal"
+};
+
 var commands = {
     "ping": {
         description: "Responds pong. Used for checking if the bot is alive.",
@@ -40,13 +59,41 @@ var commands = {
                 var srv = msg.channel.server.id;
                 var srvTable = "srv_" + srv;
                 
-                connection.query("SELECT * FROM " + srvTable, function (err, results, fields) {
-                    if (err) {
-                        throw err;
-                    }
+                if (suffix === "view") {
+                    connection.query("SELECT * FROM " + srvTable, function (err, results, fields) {
+                        if (err) {
+                            throw err;
+                        }
 
-                    console.log(results);
-                });
+                        console.log(fields);
+
+                        var msgArray = [];
+                        msgArray.push("Here's the config for this server:");
+                        msgArray.push("```");
+
+                        for (var field in fields) {
+                            if (fields[field].name !== "serverID") {
+                                var result = results[0][fields[field].name];
+                                var type = sqlDataTypes[fields[field].type];
+
+                                if (type === "tinyint") {
+                                    if (result === 1) {
+                                        msgArray.push(fields[field].name + ": true");
+                                    }
+                                    else {
+                                        msgArray.push(fields[field].name + ": false");
+                                    }
+                                }
+                                else {
+                                    msgArray.push(fields[field].name + ": " + result);
+                                }
+                            }
+                        }
+
+                        msgArray.push("```");
+                        bot.sendMessage(msg.channel, msgArray);
+                    });
+                }
             }
             else {
                 bot.reply(msg, "you don't have `manageServer` permissions!");
@@ -144,7 +191,7 @@ bot.on("serverCreated", function(srv) {
         var result = results[0][fields[0].name];
         
         if (result === 0) {
-            connection.query("INSERT INTO " + srvTable + " VALUES ( '" + srv.id + "', 0, 0 );", function (err, result) {
+            connection.query("INSERT INTO " + srvTable + " VALUES ( '" + srv.id + "', false, false );", function (err, result) {
                 if (err) {
                     throw err;
                 }
