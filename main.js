@@ -1,8 +1,5 @@
 try {
     var discord = require("discord.js");
-    var mkdirp = require("mkdirp");
-    var asyncParse = require("json-parse-async");
-    var asyncJSON = require("async-json");
 }
 catch (e) {
     console.log("You need to run npm install and make sure it passes with no errors!");
@@ -18,8 +15,8 @@ catch (e) {
 }
 
 var defaultConfig = {
-    "roleBans": false,
-    "testConfig": false
+    roleBans: false,
+    testConfig: false
 }
 
 var fs = require("fs");
@@ -42,69 +39,10 @@ var commands = {
         description: "Used for managing server configs. Use `config help` for more information.",
         usage: "<cmd>",
         hidden: false,
-        process: function (bot, msg, suffix) {
+        process: function (bot, msg, suffix, suffix2, suffix3) {
             if (msg.channel.permissionsOf(msg.author).hasPermission("manageServer")) {
                 var srv = msg.channel.server.id;
-                var configDir = "./servers/" + srv + "/config/";
-                var configFile = configDir + "config.json";
-
-                if (!suffix) {
-                    mkdirp(configDir, function (err) {
-                        if (err) {
-                            throw err;
-                        }
-                    
-                        fs.stat(configFile, function (err, stat) {
-                            if (err === null) {
-                                console.log("Config for " + srv + " is present!");
-                            }
-                            else if (err.code === "ENOENT") {
-                                fs.writeFile(configFile, JSON.stringify(defaultConfig, null, 4), function (err) {
-                                    if (err) {
-                                        throw err;
-                                    }
-
-                                    console.log("Created a default config for server " + srv + "!");
-                                    bot.reply(msg, "I have created a config for your server!");
-                                });
-                            }
-                            else {
-                                throw err;
-                            }
-                        });
-
-                        // console.log("Created a config for server: " + srv);
-                        // bot.reply(msg, "I have created a config for this server!");
-                    });
-                }
-
-                if (suffix === "help") {
-                    bot.sendMessage(msg.author, "Placeholder message about configs");
-                    bot.reply(msg, "I have sent you a DM containing information about configs!");
-                }
-
-                if (suffix === "view") {
-                    fs.readFile(configFile, "utf8", function(err, out) {
-                        if (err === null) {
-
-                        }
-                        else if (err.code === "ENOENT") {
-                            console.log("Config for " + srv + " doesn't exist!");
-                            bot.reply(msg, "you need to run `@MomijiBot config` to generate a config first!");
-                            return;
-                        }
-                        else {
-                            throw err;
-                        }
-
-                        var msgArray = [];
-
-                        msgArray.push("here is the config for this server:");
-                        msgArray.push("```" + out + "```");
-
-                        bot.reply(msg, msgArray);
-                    });
-                }
+                
             }
             else {
                 bot.reply(msg, "you don't have `manageServer` permissions!");
@@ -130,6 +68,8 @@ bot.on("message", function (msg) {
         var cmdTxt = msg.content.split(bot.user)[1];
         var cmd = commands[cmdTxt.split(" ")[1]];
         var suffix = cmdTxt.split(" ")[2];
+        var suffix2 = cmdTxt.split(" ")[3];
+        var suffix3 = cmdTxt.split(" ")[4];
 
         if (cmdTxt === " help") {
             bot.sendMessage(msg.author, "Here is a list of commands:", function () {
@@ -162,7 +102,7 @@ bot.on("message", function (msg) {
         }
         else if (cmd) {
             try {
-                cmd.process(bot, msg, suffix);
+                cmd.process(bot, msg, suffix, suffix2, suffix3);
             }
             catch (e) {
                 
