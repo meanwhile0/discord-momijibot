@@ -15,11 +15,6 @@ catch (e) {
     process.exit();
 }
 
-var defaultConfig = {
-    roleBans: false,
-    testConfig: false
-}
-
 var fs = require("fs");
 
 var commands = {
