@@ -65,8 +65,6 @@ var commands = {
                             throw err;
                         }
 
-                        console.log(fields);
-
                         var msgArray = [];
                         msgArray.push("Here's the config for this server:");
                         msgArray.push("```");
@@ -92,6 +90,36 @@ var commands = {
 
                         msgArray.push("```");
                         bot.sendMessage(msg.channel, msgArray);
+                    });
+                }
+                else if (suffix === "set") {
+                    if (!suffix2) {
+                        bot.reply(msg, "you need to specify an option to change!");
+                        return;
+                    }
+
+                    connection.query("SELECT * FROM " + srvTable, function (err, results, fields) {
+                        if (err) {
+                            throw err;
+                        }
+
+                        var configOptions = [];
+
+                        for (field in fields) {
+                            if (fields[field].name !== "serverID") {
+                                configOptions[fields[field].name] = results[0][fields[field].name];
+                            }
+                        }
+                        
+                        console.log(configOptions);
+                        console.log(configOptions[suffix2]);
+
+                        if (configOptions[suffix2] !== undefined) {
+                            console.log(suffix2 + " is in configOptions!");
+                        }
+                        else {
+                            console.log(suffix2 + " is not in configOptions or is undefined!");
+                        }
                     });
                 }
             }
