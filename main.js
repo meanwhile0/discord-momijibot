@@ -15,26 +15,15 @@ catch (e) {
     process.exit();
 }
 
-var fs = require("fs");
+try {
+    var sqlTables = require("./tables.json");
+}
+catch (e) {
+    console.log("You need to make a tables.json using the example file on the github!");
+    process.exit();
+}
 
-var sqlDataTypes = {
-    1: "tinyint",
-    2: "smallint",
-    3: "int",
-    4: "float",
-    5: "double",
-    7: "timestamp",
-    8: "bigint",
-    9: "mediumint",
-    10: "date",
-    11: "time",
-    12: "datetime",
-    13: "year",
-    16: "bit",
-    253: "varchar",
-    254: "char",
-    246: "decimal"
-};
+var fs = require("fs");
 
 var commands = {
     "ping": {
