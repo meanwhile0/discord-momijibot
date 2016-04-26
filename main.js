@@ -36,6 +36,11 @@ var sqlDataTypes = {
     246: "decimal"
 };
 
+var sqlColumns = "serverID VARCHAR(18),"
+    + "roleBans BOOL DEFAULT false,"
+    + "configTest BOOL DEFAULT false,"
+    + "newOption DATETIME DEFAULT now()";
+
 var commands = {
     "ping": {
         description: "Responds pong. Used for checking if the bot is alive.",
@@ -145,13 +150,33 @@ var commands = {
                         }
                     });
                 }
-                else if (suffix2 === "update") {
-
-                }
             }
             else {
                 bot.reply(msg, "you don't have `manageServer` permissions!");
             }
+        }
+    },
+    "pet": {
+        description: "Pet an Otter today!",
+        usage: "<@user>",
+        hidden: false,
+        process: function (bot, msg, suffix) {
+            if (!msg.channel.server) {
+                bot.sendMessage(msg.author, "Sorry, but I cannot perform this command in DM's.");
+                return;
+            }
+
+            if (msg.mentions.length < 2) {
+                bot.reply("please @mention the user you wish to pet. I also can't pet myself.");
+                return;
+            }
+
+            msg.mentions.map(function (user) {
+                if (user != bot.user) {
+                    bot.sendMessage(msg.channel, "*pets " + user + "*");
+                }
+            });
+
         }
     }
 };
@@ -177,7 +202,7 @@ bot.on("disconnected", function () {
 });
 
 bot.on("message", function (msg) {
-    if (msg.author != bot.user && msg.isMentioned(bot.user) && msg.content.split(bot.user)[1] != "") {
+    if (msg.author != bot.user && msg.content.toLowerCase().startsWith(bot.user) && msg.content.split(bot.user)[1] != "") {
         var cmdTxt = msg.content.split(bot.user)[1];
         var cmd = commands[cmdTxt.split(" ")[1]];
         var suffix = cmdTxt.split(" ")[2];
@@ -226,12 +251,15 @@ bot.on("message", function (msg) {
     }
 });
 
-bot.on("serverCreated", function(srv) {
+bot.on("serverCreated", function (srv) {
+    createTables(srv);
+});
+
+function createTables (srv) {
     var srvTable = "srv_" + srv.id;
-    var escSrvTable = connection.escape(srvTable);
     var escSrvID = connection.escape(srv.id);
 
-    connection.query("CREATE TABLE IF NOT EXISTS " + srvTable + " ( serverID VARCHAR(18), roleBans BOOL, configTest BOOL, newOption DATETIME );", function(err, result) {
+    connection.query("CREATE TABLE IF NOT EXISTS " + srvTable + " ( " + sqlColumns + " );", function(err, result) {
         if (err) {
             throw err;
         }
@@ -256,7 +284,7 @@ bot.on("serverCreated", function(srv) {
             console.log("Row exists, not creating it!");
         }
     });
-});
+}
 
 bot.loginWithToken(authDetails.token, function (err) {
     if (err) {
