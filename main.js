@@ -36,11 +36,6 @@ var sqlDataTypes = {
     246: "decimal"
 };
 
-var sqlColumns = "serverID VARCHAR(18),"
-    + "roleBans BOOL DEFAULT false,"
-    + "configTest BOOL DEFAULT false,"
-    + "newOption DATETIME DEFAULT now()";
-
 var commands = {
     "ping": {
         description: "Responds pong. Used for checking if the bot is alive.",
@@ -52,107 +47,6 @@ var commands = {
             }
             else {
                 bot.reply(msg, "pong! Your suffix was " + suffix);
-            }
-        }
-    },
-    "config": {
-        description: "Used for managing server configs. Use `config help` for more information.",
-        usage: "<cmd>",
-        hidden: false,
-        process: function (bot, msg, suffix, suffix2, suffix3) {
-            if (msg.channel.permissionsOf(msg.author).hasPermission("manageServer")) {
-                var srv = msg.channel.server.id;
-                var srvTable = "srv_" + srv;
-                
-                if (suffix === "view") {
-                    connection.query("SELECT * FROM " + srvTable, function (err, results, fields) {
-                        if (err) {
-                            throw err;
-                        }
-
-                        var msgArray = [];
-                        msgArray.push("Here's the config for this server:");
-                        msgArray.push("```");
-
-                        for (var field in fields) {
-                            if (fields[field].name !== "serverID") {
-                                var result = results[0][fields[field].name];
-                                var type = sqlDataTypes[fields[field].type];
-
-                                if (type === "tinyint") {
-                                    if (result === 1) {
-                                        msgArray.push(fields[field].name + ": true");
-                                    }
-                                    else {
-                                        msgArray.push(fields[field].name + ": false");
-                                    }
-                                }
-                                else {
-                                    msgArray.push(fields[field].name + ": " + result);
-                                }
-                            }
-                        }
-
-                        msgArray.push("```");
-                        bot.sendMessage(msg.channel, msgArray);
-                    });
-                }
-                else if (suffix === "set") {
-                    if (!suffix2) {
-                        bot.reply(msg, "you need to specify an option to change!");
-                        return;
-                    }
-
-                    connection.query("SELECT * FROM " + srvTable, function (err, results, fields) {
-                        if (err) {
-                            throw err;
-                        }
-
-                        var configOptions = [];
-
-                        for (field in fields) {
-                            if (fields[field].name !== "serverID") {
-                                configOptions[fields[field].name] = results[0][fields[field].name];
-                            }
-                        }
-                        
-                        console.log(configOptions);
-                        console.log(configOptions[suffix2]);
-
-                        if (configOptions[suffix2] !== undefined) {
-                            var value;
-
-                            console.log(suffix2 + " is in configOptions!");
-
-                            if (!suffix3) {
-                                bot.reply(msg, "you need to set a value!");
-                                return;
-                            }
-                            else if (suffix3.toLowerCase() === "true" || suffix3.toLowerCase() === "false") {
-                                value = suffix3.toLowerCase();
-                            }
-                            else {
-                                value = connection.escape(suffix3.toLowerCase());
-                            }
-                            
-                            connection.query("UPDATE " + srvTable + " SET " + suffix2 + " = " + value + ";", function (err, results, fields) {
-                                if (err) {
-                                    console.log(err);
-                                    bot.sendMessage(msg.channel, "***ERROR:*** *`" + err.code + "`!\nPlease ensure your input is valid, or contact `@meanwhile#8540` for assistance!*");
-                                    return;
-                                }
-
-                                bot.sendMessage(msg.channel, "I have set `" + suffix2 + "` to `" + value + "`!");
-                            });
-                        }
-                        else {
-                            console.log(suffix2 + " is not in configOptions or is undefined!");
-                        }
-                    });
-                }
-            }
-            else {
-                bot.reply(msg, "you don't have `manageServer` permissions!");
             }
         }
     },
@@ -250,41 +144,6 @@ bot.on("message", function (msg) {
         // bot.reply(msg, "command " + cmd + " and suffix " + suffix + " has been interpreted!");
     }
 });
-
-bot.on("serverCreated", function (srv) {
-    createTables(srv);
-});
-
-function createTables (srv) {
-    var srvTable = "srv_" + srv.id;
-    var escSrvID = connection.escape(srv.id);
-
-    connection.query("CREATE TABLE IF NOT EXISTS " + srvTable + " ( " + sqlColumns + " );", function(err, result) {
-        if (err) {
-            throw err;
-        }
-    });
-
-    connection.query("SELECT EXISTS ( SELECT 1 FROM " + srvTable + " WHERE serverID = " + escSrvID + " );", function (err, results, fields) {
-        if (err) {
-            throw err;
-        }
-
-        var result = results[0][fields[0].name];
-        
-        if (result === 0) {
-            connection.query("INSERT INTO " + srvTable + " VALUES ( '" + srv.id + "', false, false, now() );", function (err, result) {
-                if (err) {
-                    throw err;
-                }
-            });
-            console.log("Row doesn't exist, creating it!");
-        }
-        else {
-            console.log("Row exists, not creating it!");
-        }
-    });
-}
 
 bot.loginWithToken(authDetails.token, function (err) {
     if (err) {
