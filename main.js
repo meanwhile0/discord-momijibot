@@ -61,6 +61,62 @@ var commands = {
             });
 
         }
+    },
+    "ratewaifu": {
+        description: "Rate that shit waifu of yours or something. Katia and Asuka are rated zero.",
+        usage: "<shitwaifu>",
+        hidden: false,
+        process: function (bot, msg, suffix) {
+            if (!suffix) {
+                bot.sendMessage(msg.channel, "You need to name a waifu for me to rate.");
+                return;
+            }
+
+            var rating = Math.floor(Math.random() * (10 - 1)) + 1;
+            var waifu = connection.escape(suffix.toLowerCase());
+
+            if (waifu.length > 100) {
+                bot.sendMessage(msg.channel, "That waifu's name is too long.");
+                return;
+            }
+
+            if (suffix.toLowerCase() === "maki" || suffix.toLowerCase() === "nishikino maki" || suffix.toLowerCase() === "maki nishikino") {
+                bot.sendMessage(msg.channel, "I rate " + suffix + " a DIO/10.");
+                return;
+            }
+
+            connection.query("SELECT EXISTS ( SELECT 1 FROM " + sqlTables.waifus + " WHERE waifuName = " + waifu + " );", function (err, results, fields) {
+                if (err) {
+                    throw err;
+                }
+
+                var found = results[0][fields[0].name];
+
+                if (found === 1) {
+                    connection.query("SELECT * FROM " + sqlTables.waifus + " WHERE waifuName = " + waifu + ";", function (err, results, fields) {
+                        if (err) {
+                            throw err;
+                        }
+                        
+                        var result = results[0]["waifuRating"];
+
+                        bot.sendMessage(msg.channel, "I rate " + suffix + " a " + result + "/10.");
+                    })
+                }
+                else if (found === 0) {
+                    connection.query("INSERT INTO " + sqlTables.waifus + " VALUES ( " + waifu + ", " + rating + " ) ", function (err, result) {
+                        if (err) {
+                            throw err;
+                        }
+
+                        bot.sendMessage(msg.channel, "I rate " + suffix + " a " + rating + "/10.");
+                    });
+                }
+                else {
+                    
+                }
+            });
+        }
     }
 };
 
@@ -86,13 +142,10 @@ bot.on("disconnected", function () {
 
 bot.on("message", function (msg) {
     if (msg.author != bot.user && msg.content.toLowerCase().startsWith(bot.user) && msg.content.split(bot.user)[1] != "") {
-        var cmdTxt = msg.content.split(bot.user)[1];
-        var cmd = commands[cmdTxt.split(" ")[1]];
-        var suffix = cmdTxt.split(" ")[2];
-        var suffix2 = cmdTxt.split(" ")[3];
-        var suffix3 = cmdTxt.split(" ")[4];
+        var cmdTxt = msg.content.split(" ")[1];
+        var suffix = msg.content.substring(cmdTxt.length + bot.user.mention().length + 2);
 
-        if (cmdTxt === " help") {
+        if (cmdTxt === "help") {
             bot.sendMessage(msg.author, "Here is a list of commands:", function () {
                 var msgArray = [];
 
@@ -121,9 +174,9 @@ bot.on("message", function (msg) {
 
             bot.reply(msg, "I've sent you a DM with a list of commands.");
         }
-        else if (cmd) {
+        else if (commands[cmdTxt]) {
             try {
-                cmd.process(bot, msg, suffix, suffix2, suffix3);
+                commands[cmdTxt].process(bot, msg, suffix);
             }
             catch (e) {
                 
