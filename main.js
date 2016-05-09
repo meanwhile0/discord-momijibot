@@ -146,6 +146,11 @@ var commands = {
 
             var memberRole;
             var bannedRole;
+            //var reason = "NULL";
+
+            //if (suffix.split(user)[1] !== undefined) {
+            //    reason = connection.escape(suffix.split(user)[1]);
+            //}
 
             for (i = 0; i < msg.channel.server.roles.length; i++) {
                 if (msg.channel.server.roles[i].name === "Members") {
@@ -171,7 +176,20 @@ var commands = {
                                     return;
                                 }
 
+                                //if (reason !== "NULL") {
+                                //    bot.sendMessage(msg.channel, user + " has been banned by " + msg.author + " for the reason: " + reason + ".");
+                                //}
+                                //else {
+                                //    bot.sendMessage(msg.channel, user + " has been banned by " + msg.author + ".");
+                                //}
+                                
                                 bot.sendMessage(msg.channel, user + " has been banned by " + msg.author + ".");
+
+                                //connection.query("INSERT INTO bans VALUES ( '" + user + "', " + reason + " , NOW() );", function (err) {
+                                //    if (err) {
+                                //        throw err;
+                                //    }
+                                //});
                             });
                         });
                     }
