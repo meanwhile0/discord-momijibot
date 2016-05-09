@@ -297,8 +297,8 @@ bot.on("disconnected", function () {
 
 bot.on("message", function (msg) {
     if (msg.author != bot.user && msg.content.toLowerCase().startsWith(bot.user) && msg.content.split(bot.user)[1] != "") {
-        var cmdTxt = msg.content.split(" ")[1];
-        var suffix = msg.content.substring(cmdTxt.length + bot.user.mention().length + 2);
+        var cmdTxt = msg.content.split(" ")[1].toLowerCase();
+        var suffix = msg.content.substring(cmdTxt.length + bot.user.mention().length + 2).toLowerCase();
 
         if (cmdTxt === "help") {
             bot.sendMessage(msg.author, "Here is a list of commands:", function () {
