@@ -3,6 +3,7 @@ try {
     var mysql = require("mysql");
 }
 catch (e) {
+    throw e;
     console.log("You need to run npm install and make sure it passes with no errors!");
     process.exit();
 }
@@ -45,12 +46,12 @@ var commands = {
         hidden: false,
         process: function (bot, msg, suffix) {
             if (!msg.channel.server) {
-                bot.sendMessage(msg.author, "Sorry, but I cannot perform this command in DM's.");
+                bot.sendMessage(msg.author, "Sorry, but I cannot perform this command in a DM.");
                 return;
             }
 
             if (msg.mentions.length < 2) {
-                bot.reply("please @mention the user you wish to pet. I also can't pet myself.");
+                bot.reply(msg, "please @mention the user you wish to pet. I also can't pet myself.");
                 return;
             }
 
@@ -116,6 +117,142 @@ var commands = {
                     
                 }
             });
+        }
+    },
+    "ban": {
+        description: "Ban a cunt",
+        usage: "<@user>",
+        hidden: false,
+        process: function (bot, msg, suffix) {
+            if (!msg.channel.server) {
+                bot.sendMessage(msg.author, "Sorry, but I cannot perform this command in a DM.");
+                return;
+            }
+
+            if (!msg.channel.permissionsOf(msg.author).hasPermission("manageRoles")) {
+                bot.reply(msg, "you do not have the `manageRoles` permission.");
+                return;
+            }
+
+            if (!msg.channel.permissionsOf(bot.user).hasPermission("manageRoles")) {
+                bot.reply(msg, "I do not have the `manageRoles` permission.");
+                return;
+            }
+
+            if (msg.mentions.length < 2) {
+                bot.reply(msg, "please mention someone you want to ban. I cannot ban myself.");
+                return;
+            }
+
+            var memberRole;
+            var bannedRole;
+
+            for (i = 0; i < msg.channel.server.roles.length; i++) {
+                if (msg.channel.server.roles[i].name === "Members") {
+                    memberRole = msg.channel.server.roles[i];
+                }
+                else if (msg.channel.server.roles[i].name === "BANNED") {
+                    bannedRole = msg.channel.server.roles[i];
+                }
+            }
+
+            msg.mentions.map(function (user) {
+                if (user != bot.user) {
+                    if (bot.userHasRole(user, memberRole)) {
+                        bot.removeUserFromRole(user, memberRole, function (err) {
+                            if (err) {
+                                bot.sendMessage("Woops, error: " + err.code);
+                                return;
+                            }
+
+                            bot.addUserToRole(user, bannedRole, function (err) {
+                                if (err) {
+                                    bot.sendMessage("Woops, error: " + err.code);
+                                    return;
+                                }
+
+                                bot.sendMessage(msg.channel, user + " has been banned by " + msg.author + ".");
+                            });
+                        });
+                    }
+                    else {
+                        bot.reply(msg, "that user is not in the `Members` role.");
+                    }
+                }
+            });
+        }
+    },
+    "unban": {
+        description: "Unban a cunt",
+        usage: "<@user>",
+        hidden: false,
+        process: function (bot, msg, suffix) {
+            if (!msg.channel.server) {
+                bot.sendMessage(msg.author, "Sorry, but I cannot perform this command in a DM.");
+                return;
+            }
+
+            if (!msg.channel.permissionsOf(msg.author).hasPermission("manageRoles")) {
+                bot.reply(msg, "you do not have the `manageRoles` permission.");
+                return;
+            }
+
+            if (!msg.channel.permissionsOf(bot.user).hasPermission("manageRoles")) {
+                bot.reply(msg, "I do not have the `manageRoles` permission.");
+                return;
+            }
+
+            if (msg.mentions.length < 2) {
+                bot.reply(msg, "please mention someone you want to unban. I cannot unban myself.");
+                return;
+            }
+
+            var memberRole;
+            var bannedRole;
+
+            for (i = 0; i < msg.channel.server.roles.length; i++) {
+                if (msg.channel.server.roles[i].name === "Members") {
+                    memberRole = msg.channel.server.roles[i];
+                }
+                else if (msg.channel.server.roles[i].name === "BANNED") {
+                    bannedRole = msg.channel.server.roles[i];
+                }
+            }
+
+            msg.mentions.map(function (user) {
+                if (user != bot.user) {
+                    if (bot.userHasRole(user, bannedRole)) {
+                        bot.removeUserFromRole(user, bannedRole, function (err) {
+                            if (err) {
+                                bot.sendMessage("Woops, error: " + err.code);
+                                return;
+                            }
+
+                            bot.addUserToRole(user, memberRole, function (err) {
+                                if (err) {
+                                    bot.sendMessage("Woops, error: " + err.code);
+                                    return;
+                                }
+
+                                bot.sendMessage(msg.channel, user + " has been unbanned by " + msg.author + ".");
+                            });
+                        });
+                    }
+                    else {
+                        bot.reply(msg, "that user is not in the `Members` role.");
+                    }
+                }
+            });
+        }
+    },
+    "eval": {
+        description: "eval",
+        usage: "<eva>",
+        hidden: true,
+        process: function (bot, msg, suffix) {
+            if (msg.sender.id === "104374046254186496") {
+                bot.sendMessage(msg.channel, eval(suffix, bot));
+            }
         }
     }
 };
