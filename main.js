@@ -272,6 +272,37 @@ var commands = {
                 bot.sendMessage(msg.channel, eval(suffix, bot));
             }
         }
+    },
+    "whois": {
+        description: "Who's that pokemon!?",
+        usage: "<@user>",
+        hidden: false,
+        process: function (bot, msg, suffix) {
+            if (!msg.channel.server) {
+                bot.sendMessage(msg.author, "Sorry, but I cannot perform this command in a DM.");
+                return;
+            }
+
+            if (msg.mentions.length < 2) {
+                bot.reply(msg, "please mention the user you want information about. You cannot get information about me.");
+            }
+
+            msg.mentions.map(function (user) {
+                if (user !== bot.user) {
+                    var msgArray = [];
+
+                    msgArray.push("User: " + user.username);
+                    msgArray.push("ID: " + user.id);
+                    msgArray.push("Status: " + user.status);
+                
+                    if (user.avatarURL !== null) {
+                        msgArray.push("Avatar: " + user.avatarURL);
+                    }
+
+                    bot.sendMessage(msg.channel, msgArray);
+                }
+            });
+        }
     }
 };
 
