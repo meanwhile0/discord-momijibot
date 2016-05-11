@@ -181,7 +181,7 @@ var commands = {
                                     bot.sendMessage(msg.channel, user + " has been banned by " + msg.author + ".");
                                 }
 
-                                connection.query("INSERT INTO bans VALUES ( '" + user + "', " + reason + " , NOW() );", function (err) {
+                                connection.query("INSERT INTO " + sqlTables.bans + " VALUES ( '" + user + "', " + reason + " , NOW() );", function (err) {
                                     if (err) {
                                         throw err;
                                     }
