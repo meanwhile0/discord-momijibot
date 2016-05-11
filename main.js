@@ -56,7 +56,7 @@ var commands = {
             }
 
             msg.mentions.map(function (user) {
-                if (user != bot.user) {
+                if (user !== bot.user) {
                     bot.sendMessage(msg.channel, "*pets " + user + "*");
                 }
             });
@@ -162,17 +162,17 @@ var commands = {
             }
 
             msg.mentions.map(function (user) {
-                if (user != bot.user) {
+                if (user !== bot.user) {
                     if (bot.userHasRole(user, memberRole)) {
                         bot.removeUserFromRole(user, memberRole, function (err) {
                             if (err) {
-                                bot.sendMessage("Woops, error: " + err.code);
+                                bot.sendMessage(msg.channel, "Woops, error: " + err.code);
                                 return;
                             }
 
                             bot.addUserToRole(user, bannedRole, function (err) {
                                 if (err) {
-                                    bot.sendMessage("Woops, error: " + err.code);
+                                    bot.sendMessage(msg.channel, "Woops, error: " + err.code);
                                     return;
                                 }
 
@@ -238,17 +238,17 @@ var commands = {
             }
 
             msg.mentions.map(function (user) {
-                if (user != bot.user) {
+                if (user !== bot.user) {
                     if (bot.userHasRole(user, bannedRole)) {
                         bot.removeUserFromRole(user, bannedRole, function (err) {
                             if (err) {
-                                bot.sendMessage("Woops, error: " + err.code);
+                                bot.sendMessage(msg.channel, "Woops, error: " + err.code);
                                 return;
                             }
 
                             bot.addUserToRole(user, memberRole, function (err) {
                                 if (err) {
-                                    bot.sendMessage("Woops, error: " + err.code);
+                                    bot.sendMessage(msg.channel, "Woops, error: " + err.code);
                                     return;
                                 }
 
@@ -327,7 +327,7 @@ bot.on("disconnected", function () {
 });
 
 bot.on("message", function (msg) {
-    if (msg.author != bot.user && msg.content.toLowerCase().startsWith(bot.user) && msg.content.split(bot.user)[1] != "") {
+    if (msg.author !== bot.user && msg.content.toLowerCase().startsWith(bot.user) && msg.content.split(bot.user)[1] != "") {
         var cmdTxt = msg.content.split(" ")[1].toLowerCase();
         var suffix = msg.content.substring(cmdTxt.length + bot.user.mention().length + 2).toLowerCase();
 
