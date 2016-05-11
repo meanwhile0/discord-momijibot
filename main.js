@@ -204,7 +204,11 @@ var commands = {
                                         msgArray.push("```");
                                         msgArray.push("User banned: " + user.username);
                                         msgArray.push("Banned by: " + msg.author.username);
-                                        msgArray.push("Reason: " + reason);
+
+                                        if (reason !== null) {
+                                            msgArray.push("Reason: " + reason);
+                                        }
+
                                         msgArray.push("Banned at: " + bannedAt);
                                         msgArray.push("```");
 
@@ -278,20 +282,6 @@ var commands = {
                                 }
 
                                 bot.sendMessage(msg.channel, user + " has been unbanned by " + msg.author + ".");
-
-                                var msgArray = [];
-
-                                msgArray.push("```");
-                                msgArray.push("User unbanned: " + user.username);
-                                msgArray.push("Unbanned by: " + msg.author.username);
-                                msgArray.push("Unbanned at: " + moment().format("ddd MMMM DD YYYY HH:mm:ss [GMT]ZZ [(BST)]"));
-                                msgArray.push("```");
-
-                                for (i = 0; i < msg.channel.server.channels.length; i++) {
-                                    if (msg.channel.server.channels[i].topic === "momiji-event-log") {
-                                        bot.sendMessage(msg.channel.server.channels[i], msgArray);
-                                    }
-                                }
                             });
                         });
                     }
