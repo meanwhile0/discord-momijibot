@@ -364,8 +364,6 @@ bot.on("message", function (msg) {
                 
             }
         }
-
-        // bot.reply(msg, "command " + cmd + " and suffix " + suffix + " has been interpreted!");
     }
 });
 
