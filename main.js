@@ -24,8 +24,6 @@ catch (e) {
     process.exit();
 }
 
-var fs = require("fs");
-
 var commands = {
     "ping": {
         description: "Responds pong. Used for checking if the bot is alive.",
