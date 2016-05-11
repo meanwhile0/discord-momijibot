@@ -119,7 +119,7 @@ var commands = {
     },
     "ban": {
         description: "Ban a cunt",
-        usage: "<@user>",
+        usage: "<@user> <reason>",
         hidden: false,
         process: function (bot, msg, suffix) {
             if (!msg.channel.server) {
@@ -298,6 +298,21 @@ var commands = {
                     bot.sendMessage(msg.channel, msgArray);
                 }
             });
+        }
+    },
+    "baninfo": {
+        description: "Fetch the ban information of a user",
+        usage: "<@user>",
+        hidden: false,
+        process: function (bot, msg, suffix) {
+            if (!msg.channel.server) {
+                bot.sendMessage(msg.author, "Sorry, but I cannot perform this command in a DM.");
+                return;
+            }
+
+            if (msg.mentions.length < 2) {
+                bot.reply(msg, "please mention the user you want ban information about. You cannot get ban information about me.");
+            }
         }
     }
 };
