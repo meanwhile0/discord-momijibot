@@ -159,6 +159,11 @@ var commands = {
                 if (user !== bot.user) {
                     if (suffix.split(user)[1] !== undefined) {
                         reason = connection.escape(suffix.split(user + " ")[1]);
+
+                        if (reason.length > 200) {
+                            bot.reply(msg, "that ban reason is too long. The limit is 200 characters, sometimes smaller, depending on the content.");
+                            return;
+                        }
                     }
 
                     if (bot.userHasRole(user, memberRole)) {
@@ -312,7 +317,49 @@ var commands = {
 
             if (msg.mentions.length < 2) {
                 bot.reply(msg, "please mention the user you want ban information about. You cannot get ban information about me.");
+                return;
             }
+
+            msg.mentions.map(function (user) {
+                if (user !== bot.user) {
+                    connection.query("SELECT EXISTS ( SELECT 1 FROM " + sqlTables.bans + " WHERE id = '" + user + "' );", function (err, results, fields) {
+                        if (err) {
+                            throw err;
+                        }
+                        
+                        var found = results[0][fields[0].name];
+                        
+                        if (found === 1) {
+                            connection.query("SELECT * FROM " + sqlTables.bans + " WHERE id = '" + user + "';", function (err, results, fields) {
+                                if (err) {
+                                    throw err;
+                                }
+
+                                var msgArray = [];
+
+                                msgArray.push("Ban information for user " + user.username + ":```");
+                                
+                                for (i = 0; i < results.length; i++) {
+                                    var time = results[i]["bannedAt"]
+                                    var reason = results[i]["reason"]
+
+                                    msgArray.push("Banned at: " + time);
+                                    msgArray.push("Reason: " + reason);
+                                    msgArray.push("");
+                                }
+
+                                msgArray.push("```");
+
+                                bot.sendMessage(msg.author, msgArray);
+                                bot.reply(msg, "I have sent " + user + "'s ban information to you.");
+                            });
+                        }
+                        else if (found === 0) {
+                            bot.reply(msg, "there is no ban information for " + user + ".");
+                        }
+                    });
+                }
+            });
         }
     }
 };
