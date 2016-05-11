@@ -18,6 +18,7 @@
   "homepage": "https://github.com/NightmareX91/discord-momijibot#readme",
   "dependencies": {
     "discord.js": "github:hydrabolt/discord.js#indev",
+    "moment": "^2.13.0",
     "mysql": "^2.10.2",
     "unix-timestamp": "^0.2.0"
   }
