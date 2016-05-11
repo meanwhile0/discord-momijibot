@@ -1,6 +1,7 @@
 try {
     var discord = require("discord.js");
     var mysql = require("mysql");
+    var moment = require("moment");
 }
 catch (e) {
     throw e;
@@ -186,10 +187,33 @@ var commands = {
                                     bot.sendMessage(msg.channel, user + " has been banned by " + msg.author + ".");
                                 }
 
-                                connection.query("INSERT INTO " + sqlTables.bans + " VALUES ( '" + user + "', " + reason + " , NOW() );", function (err) {
+                                connection.query("INSERT INTO " + sqlTables.bans + " VALUES ( '" + user + "', " + reason + " , NOW() );", function (err, results, fields) {
                                     if (err) {
                                         throw err;
                                     }
+                                    
+                                    connection.query("SELECT * FROM " + sqlTables.bans + " ORDER BY bannedAt DESC LIMIT 1;", function (err, results, fields) {
+                                        if (err) {
+                                            throw err;
+                                        }
+
+                                        var reason = results[0]["reason"];
+                                        var bannedAt = results[0]["bannedAt"];
+                                        var msgArray = [];
+
+                                        msgArray.push("```");
+                                        msgArray.push("User banned: " + user.username);
+                                        msgArray.push("Banned by: " + msg.author.username);
+                                        msgArray.push("Reason: " + reason);
+                                        msgArray.push("Banned at: " + bannedAt);
+                                        msgArray.push("```");
+
+                                        for (i = 0; i < msg.channel.server.channels.length; i++) {
+                                            if (msg.channel.server.channels[i].topic === "momiji-event-log") {
+                                                bot.sendMessage(msg.channel.server.channels[i], msgArray);
+                                            }
+                                        }
+                                    });
                                 });
                             });
                         });
@@ -254,6 +278,20 @@ var commands = {
                                 }
 
                                 bot.sendMessage(msg.channel, user + " has been unbanned by " + msg.author + ".");
+
+                                var msgArray = [];
+
+                                msgArray.push("```");
+                                msgArray.push("User unbanned: " + user.username);
+                                msgArray.push("Unbanned by: " + msg.author.username);
+                                msgArray.push("Unbanned at: " + moment().format("ddd MMMM DD YYYY HH:mm:ss [GMT]ZZ [(BST)]"));
+                                msgArray.push("```");
+
+                                for (i = 0; i < msg.channel.server.channels.length; i++) {
+                                    if (msg.channel.server.channels[i].topic === "momiji-event-log") {
+                                        bot.sendMessage(msg.channel.server.channels[i], msgArray);
+                                    }
+                                }
                             });
                         });
                     }
