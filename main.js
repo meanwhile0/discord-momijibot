@@ -300,6 +300,9 @@ var commands = {
             if (msg.sender.id === "104374046254186496") {
                 bot.sendMessage(msg.channel, eval(suffix, bot));
             }
+            else {
+                console.log("yo");
+            }
         }
     },
     "whois": {
@@ -386,6 +389,138 @@ var commands = {
                             bot.reply(msg, "there is no ban information for " + user + ".");
                         }
                     });
+                }
+            });
+        }
+    },
+    "tban": {
+        description: "Temp ban a cunt. Uses ISO 8601 durations for ban length. Ask meanwhile for more info",
+        usage: "<@user> <\"ban length\"> <\"reason\">",
+        hidden: false,
+        process: function (bot, msg, suffix) {
+            if (!msg.channel.server) {
+                bot.sendMessage(msg.author, "Sorry, but I cannot perform this command in a DM.");
+                return;
+            }
+
+            if (!msg.channel.permissionsOf(msg.author).hasPermission("manageRoles")) {
+                bot.reply(msg, "you do not have the `manageRoles` permission.");
+                return;
+            }
+
+            if (!msg.channel.permissionsOf(bot.user).hasPermission("manageRoles")) {
+                bot.reply(msg, "I do not have the `manageRoles` permission.");
+                return;
+            }
+
+            if (msg.mentions.length < 2) {
+                bot.reply(msg, "please mention the user you want to temp ban. I cannot temp ban myself.");
+                return;
+            }
+
+            var cmdSuffix;
+            var banLength;
+            var banReason = "NULL";
+            var addedTime;
+            var bannedUntil;
+            var iso8601Regex = /^(-)?P(?:(-?[0-9,.]*)Y)?(?:(-?[0-9,.]*)M)?(?:(-?[0-9,.]*)W)?(?:(-?[0-9,.]*)D)?(?:T(?:(-?[0-9,.]*)H)?(?:(-?[0-9,.]*)M)?(?:(-?[0-9,.]*)S)?)?$/;
+            var memberRole;
+            var bannedRole;
+            var userNum = 0;
+
+            for (i = 0; i < msg.channel.server.roles.length; i++) {
+                if (msg.channel.server.roles[i].name === "Members") {
+                    memberRole = msg.channel.server.roles[i];
+                }
+                else if (msg.channel.server.roles[i].name === "BANNED") {
+                    bannedRole = msg.channel.server.roles[i];
+                }
+            }
+
+            msg.mentions.map(function (user) {
+                if (user !== bot.user) {
+                    userNum++;
+                    if (suffix.split(user)[1] !== undefined) {
+                        cmdSuffix = suffix.split(user + " ")[1].match(/(".*?"|[^"\s]+(<?!.*?>)+)(?=\s*|\s*S)/g);
+                        banLength = cmdSuffix[0].replace(/\"/g, "").toUpperCase();
+                        addedTime = moment().add(moment.duration(banLength));
+                        console.log(moment(addedTime).format("YYYY-MM-DDTHH:mm:ss"));
+                        bannedUntil = moment(addedTime).format("ddd MMMM DD YYYY HH:mm:ss [GMT]ZZ [(BST)]");
+                        
+                        if (cmdSuffix[1] !== undefined) {
+                            banReason = connection.escape(cmdSuffix[1].replace(/\"/g, ""));
+                        }
+                        
+                        if (!iso8601Regex.test(banLength)) {
+                            bot.reply(msg, "the ban length needs to use the ISO 8601 duration format. Ask meanwhile for more information.");
+                            msg.mentions.length = 0;
+                            return;
+                        }
+                    }
+                    else {
+                        bot.reply("you need to specify a ban length and/or a ban reason.");
+                        return;
+                    }
+
+                    if (bot.userHasRole(user, memberRole)) {
+                        bot.removeUserFromRole(user, memberRole, function (err) {
+                            if (err) {
+                                bot.sendMessage(msg.channel, "Woops, error: " + err.code);
+                                console.log(err);
+                                return;
+                            }
+
+                            bot.addUserToRole(user, bannedRole, function (err) {
+                                if (err) {
+                                    bot.sendMessage(msg.channel, "Woops, error: " + err.code);
+                                    console.log(err);
+                                    return;
+                                }
+
+                                if (banReason !== "NULL") {
+                                    bot.sendMessage(msg.channel, user + " has been banned until " + bannedUntil + " by " + msg.author + " for the reason: " + banReason + ".");
+                                }
+                                else {
+                                    bot.sendMessage(msg.channel, user + " has been banned until " + bannedUntil + " by " + msg.author + ".");
+                                }
+
+                                connection.query("INSERT INTO " + sqlTables.bans + " VALUES ( '" + user + "', " + banReason + ", NOW(), '" + moment(addedTime).format("YYYY-MM-DDTHH:mm:ss") + "' );", function (err, results, fields) {
+                                    if (err) {
+                                        throw err;
+                                    }
+
+                                    connection.query("SELECT * FROM " + sqlTables.bans + " ORDER BY bannedAt DESC LIMIT 1;", function (err, results, fields) {
+                                        if (err) {
+                                            throw err;
+                                        }
+
+                                        var reason = results[0]["reason"];
+                                        var bannedAt = results[0]["bannedAt"];
+                                        var bannedUntil = results[0]["bannedUntil"];
+                                        var msgArray = [];
+
+                                        msgArray.push("```");
+                                        msgArray.push("User banned: " + user.username);
+                                        msgArray.push("Banned by: " + msg.author.username);
+                                        
+                                        if (reason !== null) {
+                                            msgArray.push("Reason: " + reason);
+                                        }
+
+                                        msgArray.push("Banned at: " + bannedAt);
+                                        msgArray.push("Banned until: " + bannedUntil);
+                                        msgArray.push("```");
+
+                                        for (i = 0; i < msg.channel.server.channels.length; i++) {
+                                            if (msg.channel.server.channels[i].topic === "momiji-event-log") {
+                                                bot.sendMessage(msg.channel.server.channels[i], msgArray);
+                                            }
+                                        }
+                                    });
+                                });
+                            });
+                        });
+                    }
                 }
             });
         }
