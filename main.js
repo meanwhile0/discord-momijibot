@@ -163,6 +163,8 @@ var commands = {
 
                         if (reason.length > 200) {
                             bot.reply(msg, "that ban reason is too long. The limit is 200 characters, sometimes smaller, depending on the content.");
+
+                            msg.mentions.length = 0;
                             return;
                         }
                     }
