@@ -340,7 +340,7 @@ var commands = {
             });
         }
     },
-    "baninfo": {
+    /*"baninfo": {
         description: "Fetch the ban information of a user",
         usage: "<@user>",
         hidden: false,
@@ -372,20 +372,29 @@ var commands = {
 
                                 var msgArray = [];
 
-                                msgArray.push("Ban information for user " + user.username + ":```");
+                                bot.sendMessage(msg.author, "Ban information for user " + user.username + ":");
                                 
                                 for (i = 0; i < results.length; i++) {
-                                    var time = results[i]["bannedAt"]
-                                    var reason = results[i]["reason"]
+                                    var time = results[i]["bannedAt"];
+                                    var reason = results[i]["reason"];
+                                    var bannedUntil = results[i]["bannedUntil"];
 
+                                    msgArray.push("```");
                                     msgArray.push("Banned at: " + time);
-                                    msgArray.push("Reason: " + reason);
-                                    msgArray.push("");
+
+                                    if (bannedUntil !== null) {
+                                        msgArray.push("Banned until: " + bannedUntil);
+                                    }
+
+                                    if (reason !== null) {
+                                        msgArray.push("Reason: " + reason);
+                                    }
+
+                                    msgArray.push("```");
+
+                                    bot.sendMessage(msg.author, msgArray);
                                 }
 
-                                msgArray.push("```");
-
-                                bot.sendMessage(msg.author, msgArray);
                                 bot.reply(msg, "I have sent " + user + "'s ban information to you.");
                             });
                         }
@@ -396,7 +405,7 @@ var commands = {
                 }
             });
         }
-    },
+    },*/
     "tban": {
         description: "Temp ban a cunt. Uses ISO 8601 durations for ban length. Ask meanwhile for more info",
         usage: "<@user> <\"ban length\"> <\"reason\">",
