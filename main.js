@@ -462,6 +462,13 @@ var commands = {
                         
                         if (cmdSuffix[1] !== undefined) {
                             banReason = connection.escape(cmdSuffix[1].replace(/\"/g, ""));
+
+                            if (banReason.length > 200) {
+                                bot.reply(msg, "that ban reason is too long. The limit is 200 characters, sometimes smaller, depending on the content.");
+
+                                msg.mentions.length = 0;
+                                return;
+                            }
                         }
                         
                         if (!iso8601Regex.test(banLength)) {
