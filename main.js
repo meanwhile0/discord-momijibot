@@ -191,7 +191,7 @@ var commands = {
                                     bot.sendMessage(msg.channel, user + " has been banned by " + msg.author + ".");
                                 }
 
-                                connection.query("INSERT INTO " + sqlTables.bans + " VALUES ( '" + user + "', " + reason + " , NOW() );", function (err, results, fields) {
+                                connection.query("INSERT INTO " + sqlTables.bans + " VALUES ( '" + user + "', " + reason + " , NOW(), NULL );", function (err, results, fields) {
                                     if (err) {
                                         throw err;
                                     }
@@ -459,7 +459,6 @@ var commands = {
                         cmdSuffix = suffix.split(user + " ")[1].match(/(".*?"|[^"\s]+(<?!.*?>)+)(?=\s*|\s*S)/g);
                         banLength = cmdSuffix[0].replace(/\"/g, "").toUpperCase();
                         addedTime = moment().add(moment.duration(banLength));
-                        console.log(moment(addedTime).format("YYYY-MM-DDTHH:mm:ss"));
                         bannedUntil = moment(addedTime).format("ddd MMMM DD YYYY HH:mm:ss [GMT]ZZ [(BST)]");
                         
                         if (cmdSuffix[1] !== undefined) {
@@ -561,6 +560,61 @@ bot.on("ready", function () {
     console.log("Connected!");
     bot.setPlayingGame("Mountain of Faith");
     connection.connect();
+
+    setInterval(function () {
+        var memberRole;
+        var bannedRole;
+        var server;
+
+        for (i = 0; i < bot.servers.length; i++) {
+            if (bot.servers[i].name === "holobot") {
+                server = bot.servers[i]
+            }
+        }
+
+        for (i = 0; i < server.roles.length; i++) {
+            if (server.roles[i].name === "Members") {
+                memberRole = server.roles[i];
+            }
+            else if (server.roles[i].name === "BANNED") {
+                bannedRole = server.roles[i];
+            }
+        }
+
+        for (i = 0; i < server.usersWithRole(bannedRole).length; i++) {
+            var user = server.usersWithRole(bannedRole)[i];
+
+            connection.query("SELECT * FROM " + sqlTables.bans + " WHERE id = '" + user + "' ORDER BY bannedAt DESC LIMIT 1;", function (err, results, fields) {
+                if (err) {
+                    throw err;
+                }
+
+                if (results[0]["bannedUntil"] !== null) {
+                    connection.query("SELECT * FROM " + sqlTables.bans + " WHERE id = '" + user + "' AND bannedUntil IS NOT NULL ORDER BY bannedAt DESC LIMIT 1;", function (err, results, fields) {
+                        if (err) {
+                            throw err;
+                        }
+
+                        var bannedUntil = results[0]["bannedUntil"];
+                        
+                        if (moment().isSameOrAfter(bannedUntil)) {
+                            bot.removeUserFromRole(user, bannedRole, function (err) {
+                                if (err) {
+                                    throw err;
+                                }
+
+                                bot.addUserToRole(user, memberRole, function (err) {
+                                    if (err) {
+                                        throw err;
+                                    }
+                                });
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    }, 1000);
 });
 
 bot.on("disconnected", function () {
