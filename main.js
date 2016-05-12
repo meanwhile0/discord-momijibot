@@ -567,7 +567,7 @@ bot.on("ready", function () {
         var server;
 
         for (i = 0; i < bot.servers.length; i++) {
-            if (bot.servers[i].name === "holobot") {
+            if (bot.servers[i].name === "WAYT" || bot.servers[i].name === "holobot") {
                 server = bot.servers[i]
             }
         }
