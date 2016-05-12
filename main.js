@@ -171,12 +171,14 @@ var commands = {
                         bot.removeUserFromRole(user, memberRole, function (err) {
                             if (err) {
                                 bot.sendMessage(msg.channel, "Woops, error: " + err.code);
+                                console.log(err);
                                 return;
                             }
 
                             bot.addUserToRole(user, bannedRole, function (err) {
                                 if (err) {
                                     bot.sendMessage(msg.channel, "Woops, error: " + err.code);
+                                    console.log(err);
                                     return;
                                 }
 
@@ -272,12 +274,14 @@ var commands = {
                         bot.removeUserFromRole(user, bannedRole, function (err) {
                             if (err) {
                                 bot.sendMessage(msg.channel, "Woops, error: " + err.code);
+                                console.log(err);
                                 return;
                             }
 
                             bot.addUserToRole(user, memberRole, function (err) {
                                 if (err) {
                                     bot.sendMessage(msg.channel, "Woops, error: " + err.code);
+                                    console.log(err);
                                     return;
                                 }
 
