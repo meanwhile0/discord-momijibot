@@ -2,6 +2,7 @@ try {
     var discord = require("discord.js");
     var mysql = require("mysql");
     var moment = require("moment");
+    var momenttz = require("moment-timezone");
 }
 catch (e) {
     throw e;
@@ -459,7 +460,7 @@ var commands = {
                         cmdSuffix = suffix.split(user + " ")[1].match(/(".*?"|[^"\s]+(<?!.*?>)+)(?=\s*|\s*S)/g);
                         banLength = cmdSuffix[0].replace(/\"/g, "").toUpperCase();
                         addedTime = moment().add(moment.duration(banLength));
-                        bannedUntil = moment(addedTime).format("ddd MMMM DD YYYY HH:mm:ss [GMT]ZZ [(BST)]");
+                        bannedUntil = moment(addedTime).format("ddd MMMM DD YYYY HH:mm:ss [GMT]ZZ [(" + momenttz.tz.zone(momenttz.tz.guess()).abbr(addedTime) + ")]");
                         
                         if (cmdSuffix[1] !== undefined) {
                             banReason = connection.escape(cmdSuffix[1].replace(/\"/g, ""));
