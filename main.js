@@ -608,6 +608,8 @@ bot.on("ready", function () {
                                     if (err) {
                                         throw err;
                                     }
+
+                                    bot.sendMessage(user, "You have been unbanned from " + server.name + ".");
                                 });
                             });
                         }
