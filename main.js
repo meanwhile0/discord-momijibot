@@ -442,7 +442,6 @@ var commands = {
             var iso8601Regex = /^(-)?P(?:(-?[0-9,.]*)Y)?(?:(-?[0-9,.]*)M)?(?:(-?[0-9,.]*)W)?(?:(-?[0-9,.]*)D)?(?:T(?:(-?[0-9,.]*)H)?(?:(-?[0-9,.]*)M)?(?:(-?[0-9,.]*)S)?)?$/;
             var memberRole;
             var bannedRole;
-            var userNum = 0;
 
             for (i = 0; i < msg.channel.server.roles.length; i++) {
                 if (msg.channel.server.roles[i].name === "Members") {
@@ -455,9 +454,8 @@ var commands = {
 
             msg.mentions.map(function (user) {
                 if (user !== bot.user) {
-                    userNum++;
-                    if (suffix.split(user)[1] !== undefined) {
-                        cmdSuffix = suffix.split(user + " ")[1].match(/(".*?"|[^"\s]+(<?!.*?>)+)(?=\s*|\s*S)/g);
+                    if (suffix.split(/<@!?\d+?>/)[1] !== undefined) {
+                        cmdSuffix = suffix.split(/<@!?\d+?> /)[1].match(/(".*?"|[^"\s]+(<?!.*?>)+)(?=\s*|\s*S)/g);
                         banLength = cmdSuffix[0].replace(/\"/g, "").toUpperCase();
                         addedTime = moment().add(moment.duration(banLength));
                         bannedUntil = moment(addedTime).format("ddd MMMM DD YYYY HH:mm:ss [GMT]ZZ [(" + momenttz.tz.zone(momenttz.tz.guess()).abbr(addedTime) + ")]");
