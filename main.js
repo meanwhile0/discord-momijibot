@@ -582,20 +582,21 @@ bot.on("ready", function () {
 
         for (i = 0; i < server.usersWithRole(bannedRole).length; i++) {
             var user = server.usersWithRole(bannedRole)[i];
+            var user2 = String(user).match(/<@!?\d+?>/)[0];
 
-            connection.query("SELECT * FROM " + sqlTables.bans + " WHERE id = '" + user + "' ORDER BY bannedAt DESC LIMIT 1;", function (err, results, fields) {
+            connection.query("SELECT * FROM " + sqlTables.bans + " WHERE id = '" + user2 + "' ORDER BY bannedAt DESC LIMIT 1;", function (err, results, fields) {
                 if (err) {
                     throw err;
                 }
 
                 if (results[0]["bannedUntil"] !== null) {
-                    connection.query("SELECT * FROM " + sqlTables.bans + " WHERE id = '" + user + "' AND bannedUntil IS NOT NULL ORDER BY bannedAt DESC LIMIT 1;", function (err, results, fields) {
+                    connection.query("SELECT * FROM " + sqlTables.bans + " WHERE id = '" + user2 + "' AND bannedUntil IS NOT NULL ORDER BY bannedAt DESC LIMIT 1;", function (err, results, fields) {
                         if (err) {
                             throw err;
                         }
 
                         var bannedUntil = results[0]["bannedUntil"];
-                        
+
                         if (moment().isSameOrAfter(bannedUntil)) {
                             bot.removeUserFromRole(user, bannedRole, function (err) {
                                 if (err) {
@@ -614,6 +615,8 @@ bot.on("ready", function () {
                     });
                 }
             });
+
+            return;
         }
     }, 1000);
 });
