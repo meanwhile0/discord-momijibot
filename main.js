@@ -544,6 +544,90 @@ var commands = {
                 }
             });
         }
+    },
+    "marco": {
+        description: "Marco! Polo!",
+        hidden: false,
+        process: function (bot, msg, suffix) {
+            if (!msg.channel.server) {
+                bot.sendMessage(msg.author, "Sorry, but I cannot perform this command in a DM.");
+                return;
+            }
+
+            if (!msg.channel.permissionsOf(bot.user).hasPermission("manageRoles")) {
+                bot.sendMessage(msg.channel, "Polo!");
+                return;
+            }
+
+            var memberRole;
+            var bannedRole;
+            var random = Math.floor(Math.random() * (10 - 1 + 1)) + 1;
+
+            for (i = 0; i < msg.channel.server.roles.length; i++) {
+                if (msg.channel.server.roles[i].name === "Members") {
+                    memberRole = msg.channel.server.roles[i];
+                }
+                else if (msg.channel.server.roles[i].name === "BANNED") {
+                    bannedRole = msg.channel.server.roles[i];
+                }
+            }
+
+            if (random === 1) {
+                if (bot.userHasRole(msg.author, memberRole)) {
+                    bot.removeUserFromRole(msg.author, memberRole, function (err) {
+                        if (err) {
+                            bot.sendMessage(msg.channel, "Polo!");
+                            console.log(err);
+                            return;
+                        }
+
+                        bot.addUserToRole(msg.author, bannedRole, function (err) {
+                            if (err) {
+                                bot.sendMessage(msg.channel, "Polo!");
+                                console.log(err);
+                                return;
+                            }
+
+                            connection.query("INSERT INTO " + sqlTables.bans + " VALUES ( '" + msg.author + "', 'Idiot cull', NOW(), '" + moment(moment().add(1, "d")).format("YYYY-MM-DDTHH:mm:ss") + "' );", function (err, results, fields) {
+                                if (err) {
+                                    throw err;
+                                }
+
+                                connection.query("SELECT * FROM " + sqlTables.bans + " ORDER BY bannedAt DESC LIMIT 1;", function (err, results, fields) {
+                                    if (err) {
+                                        throw err;
+                                    }
+
+                                    var reason = results[0]["reason"];
+                                    var bannedAt = results[0]["bannedAt"];
+                                    var bannedUntil = results[0]["bannedUntil"];
+                                    var msgArray = [];
+
+                                    msgArray.push("```");
+                                    msgArray.push("User banned: " + msg.author.username);
+                                    msgArray.push("Reason: " + reason);
+                                    msgArray.push("Banned at: " + bannedAt);
+                                    msgArray.push("Banned until: " + bannedUntil);
+                                    msgArray.push("```");
+
+                                    for (i = 0; i < msg.channel.server.channels.length; i++) {
+                                        if (msg.channel.server.channels[i].topic === "momiji-event-log") {
+                                            bot.sendMessage(msg.channel.server.channels[i], msgArray);
+                                        }
+                                    }
+                                    
+                                    bot.sendMessage(msg.channel, "FUCK YOU!");
+                                })
+                            })
+                        })
+                    })
+                }
+            }
+            else {
+                bot.sendMessage(msg.channel, "Polo!");
+                return;
+            }
+        }
     }
 };
 
