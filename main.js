@@ -673,6 +673,10 @@ bot.on("ready", function () {
                     throw err;
                 }
 
+                if (results.length < 1) {
+                    return;
+                }
+
                 if (results[0]["bannedUntil"] !== null) {
                     connection.query("SELECT * FROM " + sqlTables.bans + " WHERE id = '" + user2 + "' AND bannedUntil IS NOT NULL ORDER BY bannedAt DESC LIMIT 1;", function (err, results, fields) {
                         if (err) {
