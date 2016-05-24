@@ -343,7 +343,7 @@ var commands = {
             });
         }
     },
-    /*"baninfo": {
+    "baninfo": {
         description: "Fetch the ban information of a user",
         usage: "<@user>",
         hidden: false,
@@ -375,14 +375,15 @@ var commands = {
 
                                 var msgArray = [];
 
-                                bot.sendMessage(msg.author, "Ban information for user " + user.username + ":");
-                                
-                                for (i = 0; i < results.length; i++) {
+                                msgArray.push("Ban information for user " + user.username + ":");
+                                msgArray.push("```");
+                                msgArray.push("--------");
+
+                                for (i = 0; i < results.slice(0, 5).length; i++) {
                                     var time = results[i]["bannedAt"];
                                     var reason = results[i]["reason"];
                                     var bannedUntil = results[i]["bannedUntil"];
 
-                                    msgArray.push("```");
                                     msgArray.push("Banned at: " + time);
 
                                     if (bannedUntil !== null) {
@@ -393,10 +394,11 @@ var commands = {
                                         msgArray.push("Reason: " + reason);
                                     }
 
-                                    msgArray.push("```");
-
-                                    bot.sendMessage(msg.author, msgArray);
+                                    msgArray.push("--------");
                                 }
+
+                                msgArray.push("```");
+                                bot.sendMessage(msg.author, msgArray);
 
                                 bot.reply(msg, "I have sent " + user + "'s ban information to you.");
                             });
@@ -408,7 +410,7 @@ var commands = {
                 }
             });
         }
-    },*/
+    },
     "tban": {
         description: "Temp ban a cunt. Uses ISO 8601 durations for ban length. Ask meanwhile for more info",
         usage: "<@user> <\"ban length\"> <\"reason\">",
@@ -627,6 +629,47 @@ var commands = {
                 bot.sendMessage(msg.channel, "Polo!");
                 return;
             }
+        }
+    },
+    "bancount": {
+        description: "Get the bancount of a user",
+        usage: "<@user>",
+        hidden: false,
+        process: function (bot, msg, suffix) {
+            if (!msg.channel.server) {
+                bot.sendMessage(msg.channel, "Sorry, but I cannot perform this command in a DM.");
+                return;
+            }
+
+            if (msg.mentions.length < 2) {
+                bot.reply(msg, "please mention the user you want to get the bancount of. I cannot get my own bancount.");
+                return;
+            }
+
+            msg.mentions.map(function (user) {
+                if (user !== bot.user) {
+                    connection.query("SELECT EXISTS ( SELECT 1 FROM " + sqlTables.bans + " WHERE id = '" + user + "' );", function(err, results, fields) {
+                        if (err) {
+                            throw err;
+                        }
+
+                        var found = results[0][fields[0].name];
+
+                        if (found === 1) {
+                            connection.query("SELECT * FROM " + sqlTables.bans + " WHERE id = '" + user + "';", function (err, results, fields) {
+                                if (err) {
+                                    throw err;
+                                }
+
+                                bot.sendMessage(msg.channel, user + " has been banned " + results.length + " times.");
+                            });
+                        }
+                        else if (found === 0) {
+                            bot.sendMessage(msg.channel, user + " has been banned 0 times.");
+                        }
+                    });
+                }
+            })
         }
     }
 };
