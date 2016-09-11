@@ -1,3 +1,6 @@
+# This bot has reached the end of its life
+RIP. Another bot is coming soon (i need to stop making bots)
+
 # discord-momijibot
 A total rewrite of HoloBot under a different name. Currently running on `discord.js#indev`.
 
